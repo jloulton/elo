@@ -1,0 +1,1171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Baby Name Ranking — Morton Line</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --tfl-red: #E1251B;
+  --tfl-blue: #003688;
+  --tfl-yellow: #FFD700;
+  --tfl-green: #007D32;
+  --tfl-cream: #F5F0E8;
+  --tfl-warm: #EDE8DC;
+  --tfl-dark: #1C1C1C;
+  --tfl-mid: #4A4A4A;
+  --tfl-light: #9A9A9A;
+  --tfl-white: #FFFFFF;
+  --tfl-border: #CCCCCC;
+  --roundel-ring: #E1251B;
+  --roundel-bar: #003688;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Source Sans 3', 'Arial', sans-serif;
+  background: var(--tfl-cream);
+  color: var(--tfl-dark);
+  min-height: 100vh;
+}
+
+/* ── Top bar like a tube header ── */
+.tfl-topbar {
+  background: var(--tfl-red);
+  padding: 0;
+  position: relative;
+  overflow: hidden;
+}
+.tfl-topbar-inner {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 14px 1.25rem 12px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.roundel {
+  flex-shrink: 0;
+  width: 52px;
+  height: 52px;
+}
+.topbar-text { flex: 1; }
+.topbar-title {
+  font-family: 'Bebas Neue', 'Impact', sans-serif;
+  font-size: 28px;
+  color: var(--tfl-white);
+  letter-spacing: 0.06em;
+  line-height: 1;
+}
+.topbar-sub {
+  font-size: 12px;
+  color: rgba(255,255,255,0.8);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+/* Tile pattern on topbar */
+.tfl-topbar::after {
+  content: '';
+  position: absolute;
+  right: 0; top: 0; bottom: 0;
+  width: 120px;
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 6px,
+    rgba(255,255,255,0.07) 6px,
+    rgba(255,255,255,0.07) 12px
+  );
+  pointer-events: none;
+}
+
+/* ── Main layout ── */
+.app {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 0 1.25rem 4rem;
+}
+
+/* ── Tube line progress bar ── */
+.tube-line-wrap {
+  padding: 1.25rem 0 0.5rem;
+}
+.tube-line-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 8px;
+}
+.tube-line-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 15px;
+  letter-spacing: 0.12em;
+  color: var(--tfl-blue);
+  text-transform: uppercase;
+}
+.tube-line-pct {
+  font-size: 13px;
+  color: var(--tfl-mid);
+  font-weight: 600;
+}
+.tube-track {
+  height: 12px;
+  background: var(--tfl-border);
+  border-radius: 6px;
+  overflow: hidden;
+  position: relative;
+}
+.tube-fill {
+  height: 100%;
+  background: var(--tfl-red);
+  border-radius: 6px;
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.tube-stations {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 5px;
+}
+.tube-station-label {
+  font-size: 10px;
+  color: var(--tfl-light);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* ── Platform sign ── */
+.platform-sign {
+  background: var(--tfl-blue);
+  color: var(--tfl-white);
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 13px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  padding: 6px 14px;
+  display: inline-block;
+  margin: 0.75rem 0;
+}
+
+/* ── Match card ── */
+.match-card {
+  background: var(--tfl-white);
+  border: 2px solid var(--tfl-dark);
+  margin-bottom: 1rem;
+  position: relative;
+  overflow: hidden;
+}
+.match-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 4px;
+  background: var(--tfl-red);
+}
+
+.match-instruction {
+  text-align: center;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--tfl-mid);
+  padding: 14px 16px 8px;
+  font-weight: 600;
+  border-bottom: 1px solid var(--tfl-border);
+}
+
+.match-names {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: stretch;
+}
+
+.name-option {
+  padding: 24px 16px;
+  text-align: center;
+  cursor: pointer;
+  border: none;
+  background: var(--tfl-white);
+  transition: background 0.12s, transform 0.08s;
+  position: relative;
+}
+.name-option:hover { background: #FFF5F5; }
+.name-option:active { transform: scale(0.97); }
+.name-option.left { border-right: 1px solid var(--tfl-border); }
+.name-option.right { border-left: 1px solid var(--tfl-border); }
+
+.name-option-label {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 34px;
+  color: var(--tfl-dark);
+  line-height: 1;
+  letter-spacing: 0.02em;
+  display: block;
+  margin-bottom: 4px;
+}
+.name-elo-badge {
+  display: inline-block;
+  background: var(--tfl-blue);
+  color: var(--tfl-white);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  letter-spacing: 0.08em;
+}
+.name-rank-hint {
+  display: block;
+  font-size: 11px;
+  color: var(--tfl-light);
+  margin-top: 4px;
+  letter-spacing: 0.05em;
+}
+
+.vs-col {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 12px;
+  background: var(--tfl-cream);
+}
+.vs-text {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px;
+  color: var(--tfl-mid);
+  letter-spacing: 0.08em;
+}
+
+/* ── Skip / action row ── */
+.action-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+.tfl-btn {
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 10px 20px;
+  cursor: pointer;
+  border: 2px solid var(--tfl-dark);
+  transition: all 0.12s;
+}
+.tfl-btn-primary {
+  background: var(--tfl-red);
+  color: var(--tfl-white);
+  border-color: var(--tfl-red);
+}
+.tfl-btn-primary:hover { background: #C01F16; border-color: #C01F16; }
+.tfl-btn-secondary {
+  background: var(--tfl-white);
+  color: var(--tfl-dark);
+}
+.tfl-btn-secondary:hover { background: var(--tfl-warm); }
+.tfl-btn-blue {
+  background: var(--tfl-blue);
+  color: var(--tfl-white);
+  border-color: var(--tfl-blue);
+}
+.tfl-btn-blue:hover { background: #002570; border-color: #002570; }
+
+/* ── Notice strip ── */
+.notice-strip {
+  background: var(--tfl-yellow);
+  border-left: 4px solid var(--tfl-dark);
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--tfl-dark);
+  margin-bottom: 1rem;
+}
+
+/* ── Results screen ── */
+.results-header {
+  padding: 1.25rem 0 0.5rem;
+  border-bottom: 3px solid var(--tfl-red);
+  margin-bottom: 1.25rem;
+}
+.results-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 32px;
+  letter-spacing: 0.06em;
+  color: var(--tfl-dark);
+  line-height: 1;
+}
+.results-sub {
+  font-size: 12px;
+  color: var(--tfl-mid);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
+/* ── Ranking list ── */
+.ranking-list { margin-bottom: 1rem; }
+.rank-item {
+  display: grid;
+  grid-template-columns: 36px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--tfl-border);
+  background: var(--tfl-white);
+  transition: background 0.1s;
+}
+.rank-item:first-child { border-top: 1px solid var(--tfl-border); }
+.rank-item.top-10 { background: var(--tfl-white); }
+.rank-item.top-3 { background: #FFF8F8; }
+.rank-num {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 20px;
+  color: var(--tfl-light);
+  text-align: center;
+  line-height: 1;
+}
+.rank-item.top-3 .rank-num { color: var(--tfl-red); }
+.rank-item.top-10 .rank-num { color: var(--tfl-blue); }
+.rank-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px;
+  color: var(--tfl-dark);
+  letter-spacing: 0.03em;
+  line-height: 1;
+}
+.rank-elo {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--tfl-white);
+  background: var(--tfl-blue);
+  padding: 3px 8px;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+.rank-item.top-3 .rank-elo { background: var(--tfl-red); }
+
+/* Position indicator dot */
+.rank-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--tfl-light);
+  display: inline-block;
+  margin-right: 4px;
+  vertical-align: middle;
+}
+.rank-item.top-3 .rank-dot { background: var(--tfl-red); }
+.rank-item.top-10 .rank-dot { background: var(--tfl-blue); }
+
+.expand-btn-wrap { text-align: center; margin: 0.5rem 0 1.25rem; }
+.expand-btn {
+  background: none;
+  border: none;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--tfl-blue);
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 6px 0;
+}
+.expand-btn:hover { color: var(--tfl-red); }
+
+.results-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 1.5rem;
+}
+
+/* ── Divider ── */
+.tfl-divider {
+  height: 2px;
+  background: repeating-linear-gradient(90deg, var(--tfl-red) 0px, var(--tfl-red) 20px, transparent 20px, transparent 24px);
+  margin: 1.25rem 0;
+}
+
+/* ── Round 2 ── */
+.r2-header {
+  padding: 1rem 0 0.75rem;
+  text-align: center;
+  border-bottom: 3px solid var(--tfl-blue);
+  margin-bottom: 1.25rem;
+}
+.r2-pass-label {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 13px;
+  letter-spacing: 0.2em;
+  color: var(--tfl-mid);
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 4px;
+}
+.r2-first-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 40px;
+  color: var(--tfl-red);
+  letter-spacing: 0.04em;
+  line-height: 1;
+  display: block;
+}
+.r2-question {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--tfl-mid);
+  margin-top: 4px;
+}
+
+.combo-card {
+  background: var(--tfl-white);
+  border: 2px solid var(--tfl-dark);
+  padding: 1.5rem 1rem;
+  text-align: center;
+  margin-bottom: 1rem;
+  position: relative;
+  overflow: hidden;
+}
+.combo-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 4px;
+  background: var(--tfl-blue);
+}
+.combo-full-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 36px;
+  letter-spacing: 0.04em;
+  line-height: 1.1;
+  margin-bottom: 6px;
+}
+.combo-first { color: var(--tfl-red); }
+.combo-middle { color: var(--tfl-blue); }
+.combo-surname {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--tfl-light);
+  margin-top: 2px;
+}
+
+.thumb-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 0.75rem;
+}
+.thumb-btn {
+  padding: 16px 8px;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 20px;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  border: 2px solid var(--tfl-dark);
+  transition: all 0.12s;
+}
+.thumb-yes { background: var(--tfl-green); color: var(--tfl-white); border-color: var(--tfl-green); }
+.thumb-yes:hover { background: #005A24; }
+.thumb-no { background: var(--tfl-white); color: var(--tfl-dark); }
+.thumb-no:hover { background: var(--tfl-warm); }
+.thumb-no:active, .thumb-yes:active { transform: scale(0.97); }
+
+.r2-progress-text {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--tfl-mid);
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+/* ── Final results ── */
+.final-header {
+  padding: 1.25rem 0 0.75rem;
+}
+.r2-results-block { margin-bottom: 1.5rem; }
+.r2-name-heading {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 20px;
+  letter-spacing: 0.06em;
+  color: var(--tfl-red);
+  border-bottom: 2px solid var(--tfl-red);
+  padding-bottom: 4px;
+  margin-bottom: 8px;
+}
+.combo-pills { display: flex; flex-wrap: wrap; gap: 8px; }
+.combo-pill {
+  background: var(--tfl-blue);
+  color: var(--tfl-white);
+  font-size: 13px;
+  font-weight: 700;
+  padding: 5px 14px;
+  letter-spacing: 0.06em;
+}
+.combo-pill strong { color: var(--tfl-yellow); }
+.no-combos {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: var(--tfl-light);
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+/* ── Export button ── */
+.export-btn {
+  background: var(--tfl-dark);
+  color: var(--tfl-white);
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 10px 20px;
+  cursor: pointer;
+  border: 2px solid var(--tfl-dark);
+  transition: all 0.12s;
+  width: 100%;
+}
+.export-btn:hover { background: var(--tfl-mid); border-color: var(--tfl-mid); }
+.export-btn.copied { background: var(--tfl-green); border-color: var(--tfl-green); }
+
+/* ── Corgi SVG ── */
+.corgi-wrap {
+  text-align: center;
+  margin: 1.5rem 0 0.5rem;
+}
+
+/* ── Transition / welcome ── */
+.welcome-card {
+  background: var(--tfl-white);
+  border: 2px solid var(--tfl-dark);
+  padding: 2rem 1.5rem;
+  text-align: center;
+  margin: 1.5rem 0;
+  position: relative;
+  overflow: hidden;
+}
+.welcome-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 6px;
+  background: linear-gradient(90deg, var(--tfl-red) 0%, var(--tfl-red) 50%, var(--tfl-blue) 50%);
+}
+.welcome-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 38px;
+  letter-spacing: 0.04em;
+  color: var(--tfl-dark);
+  line-height: 1;
+  margin-bottom: 8px;
+}
+.welcome-sub {
+  font-size: 14px;
+  color: var(--tfl-mid);
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+  letter-spacing: 0.02em;
+}
+.welcome-name-chip {
+  display: inline-block;
+  background: var(--tfl-red);
+  color: var(--tfl-white);
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 18px;
+  padding: 4px 12px;
+  letter-spacing: 0.06em;
+  margin: 3px;
+}
+
+/* ── Fade in ── */
+@keyframes fade-up { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+.fade-up { animation: fade-up 0.3s ease both; }
+
+/* ── Responsive ── */
+@media (max-width: 420px) {
+  .name-option-label { font-size: 26px; }
+  .topbar-title { font-size: 22px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Top bar -->
+<div class="tfl-topbar">
+  <div class="tfl-topbar-inner">
+    <!-- Roundel SVG -->
+    <svg class="roundel" viewBox="0 0 52 52" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="26" cy="26" r="24" fill="none" stroke="#E1251B" stroke-width="7"/>
+      <rect x="2" y="20" width="48" height="12" fill="#003688"/>
+      <text x="26" y="30" text-anchor="middle" font-family="'Bebas Neue',sans-serif" font-size="8" fill="white" letter-spacing="0.5">MORTON</text>
+    </svg>
+    <div class="topbar-text">
+      <div class="topbar-title">Baby Name Ranking</div>
+      <div class="topbar-sub">Morton Line · ELO Service</div>
+    </div>
+  </div>
+</div>
+
+<div class="app">
+  <div id="app-root"></div>
+</div>
+
+<script>
+// ── Name data ──────────────────────────────────────────────────────────────
+const jacky1 = new Set(["Adelaide","Adele","Alexandra","Alexis","Alix","Amelia","Amy","April","Audrey","Avery","Beatrice","Beatrix","Brie","Briony","Cecilia","Celia","Chloe","Clover","Daisy","Daphne","Dorothy","Elaine","Eleanor","Eliza","Elizabeth","Elsie","Elsbeth","Elspeth","Emily","Esther","Evelyn","Felicity","Fern","Florence","Frances","Francesca","Georgia","Georgina","Hope","Ida","Imogen","Ingrid","Isabel","Josephine","June","Kit","Leah","Leslie","Lily","Lisa","Lucy","Lydia","Lyra","Mabel","Madeline","Maeve","Maggie","Maisie","Marilyn","Maxine","May","Merrin","Millicent","Miriam","Molly","Myra","Olive","Olivia","Penelope","Phoebe","Rebecca","Robin","Rose","Rosemary","Ruby","Sabrina","Sophia","Sophie","Sylvia","Teresa","Tessa","Tess","Thea","Vera","Victoria","Viola","Wren","Zara","Zelda","Zoe"]);
+const jacky2 = new Set(["Alice","Grace","Hazel","Iris","Ivy","Joy","Mae","Meredith","Violet"]);
+const jackyDown = new Set(["Alicia","Alison","Alma","Althea","Alyssa","Amanda","Amara","Amber","Anastasia","Andrea","Angela","Angelica","Anita","Ann","Anna","Annabel","Anne","Annette","Antonia","Arabella","Aria","Ariadne","Ariana","Ariel","Ashley","Astrid","Athena","Aubrey","Augusta","Aurelia","Aurora","Autumn","Ava","Barbara","Bella","Bernadette","Beryl","Bethany","Betsy","Betty","Bianca","Billie","Blair","Blake","Blanche","Blythe","Bonnie","Brenda","Brianna","Bridget","Briar","Brooke","Brynn","Caitlin","Callie","Camilla","Camille","Candace","Cara","Carly","Carmen","Caroline","Carolyn","Casey","Cassandra","Cassidy","Catherine","Celeste","Celine","Charlotte","Chelsea","Christina","Christine","Ciara","Claire","Clara","Clarissa","Claudia","Clementine","Colette","Colleen","Constance","Cora","Coralie","Cordelia","Corinne","Cornelia","Cosima","Courtney","Cynthia","Dahlia","Dana","Danielle","Daria","Davina","Dawn","Deborah","Delia","Delilah","Denise","Desiree","Diana","Diane","Dinah","Dolores","Dominique","Donna","Dora","Drusilla","Eden","Edith","Edna","Eileen","Elena","Elisa","Elise","Ella","Ellen","Eloise","Elsa","Emelia","Emery","Emilia","Emma","Enid","Erica","Erin","Esme","Esmeralda","Estelle","Etta","Eudora","Eugenia","Eunice","Euphemia","Eva","Evangeline","Eve","Faith","Faye","Fiona","Flora","Francine","Freya","Frida","Gabriella","Gabrielle","Gemma","Genevieve","Georgiana","Geraldine","Germaine","Gertrude","Gillian","Gina","Giselle","Gladys","Glenda","Gloria","Greta","Gretchen","Gwendolyn","Gwyneth","Hailey","Halle","Hallie","Harriet","Heather","Heidi","Helen","Helena","Henrietta","Hermione","Hester","Hilary","Hillary","Hilda","Holly","Honora","Irene","Isadora","Isla","Jacqueline","Jade","Jane","Janet","Janice","Jean","Jeanette","Jemima","Jenna","Jennifer","Jessica","Jill","Joan","Joanna","Jocelyn","Jodi","Judith","Julia","Juliana","Julianne","Juliet","Juno","Justine","Kara","Karen","Karina","Kate","Katherine","Kathleen","Katrina","Kay","Kayla","Kelly","Kendra","Kerry","Kiara","Kira","Kirsten","Lana","Lara","Laura","Laurel","Lauren","Lavinia","Layla","Leanne","Lena","Leonora","Letitia","Lillian","Lina","Linda","Lindsay","Lois","Lola","Lorelei","Lorena","Loretta","Lori","Lorraine","Louisa","Louise","Lucia","Lucille","Lucinda","Lyla","Lynn","Magdalena","Mallory","Mandy","Mara","Marceline","Marcella","Margaret","Margot","Maria","Mariah","Marian","Marianne","Marie","Marina","Marion","Marjorie","Marlene","Martha","Mary","Matilda","Maude","Maureen","Maya","Megan","Melanie","Melinda","Melissa","Melody","Michelle","Mildred","Mina","Miranda","Moira","Mona","Monica","Morgan","Muriel","Nadia","Nadine","Nancy","Naomi","Natalie","Natasha","Nell","Nicola","Nicole","Nina","Noelle","Nora","Norma","Octavia","Odette","Oona","Opal","Ophelia","Paige","Pamela","Patricia","Paula","Pauline","Pearl","Petra","Philippa","Philomena","Phyllis","Polly","Portia","Priscilla","Prudence","Rachel","Ramona","Regina","Renata","Renee","Rhea","Rhoda","Rita","Roberta","Rosa","Rosalind","Rosamund","Rowena","Roxanne","Ruth","Sabina","Sally","Samantha","Sandra","Sarah","Sasha","Scarlett","Selena","Serena","Shannon","Sharon","Sheila","Shirley","Sibyl","Silvia","Simone","Sonia","Stacy","Stella","Stephanie","Summer","Susan","Susanna","Tabitha","Tamara","Tanya","Tara","Tatiana","Theodora","Theresa","Thomasina","Thora","Tiffany","Tina","Tracy","Una","Ursula","Valerie","Vanessa","Verity","Veronica","Virginia","Vivian","Wallis","Wanda","Wendy","Whitney","Wilhelmina","Willa","Winifred","Wynne","Xanthe","Xenia","Yasmin","Yolanda","Yvette","Yvonne","Zinnia","Zola"]);
+const david1 = new Set(["Adelaide","Adele","Agatha","Alexandra","Alexis","Alice","Amber","Amelia","April","Avery","Beatrice","Bridget","Casey","Cecilia","Celia","Chelsea","Chloe","Clara","Cynthia","Daphne","Edith","Elena","Eliza","Elizabeth","Elsa","Elsbeth","Elspeth","Florence","Gabriella","Genevieve","Grace","Imogen","Joanna","Jocelyn","Josephine","Julia","Juliet","Kelly","Leah","Leslie","Lyra","Mabel","Margot","Matilda","Meredith","Olivia","Penelope","Phoebe","Regina","Rosa","Rosalind","Rose","Rosemary","Sabrina","Sibyl","Silvia","Sophia","Sophie","Sylvia","Tabitha","Tessa","Tess","Thea","Theresa","Viola","Violet","Virginia","Winifred","Zelda","Zoe"]);
+const david2 = new Set(["Abigail","Alix","Beatrix","Charlotte","Dorothy","Elaine","Eleanor","Emily","Evelyn","Felicity","Judith","Lucy","Teresa","Victoria","Vivian"]);
+const overrideNames = ["Amber","Astrid","Aubrey","Audrey","Joy"];
+
+const displayName = n => n === "Elizabeth" ? "Elizabeth (Bess)" : n;
+
+function getScore(name) {
+  const j = jacky2.has(name) ? 2 : jacky1.has(name) ? 1 : jackyDown.has(name) ? -1 : 0;
+  const d = david2.has(name) ? 2 : david1.has(name) ? 1 : -1;
+  if (j <= 0 || d <= 0) return null;
+  return j + d;
+}
+
+const allNamesSet = new Set([...jacky1, ...jacky2, ...david1, ...david2]);
+const allNames = [];
+allNamesSet.forEach(n => { if (getScore(n) !== null) allNames.push(n); });
+overrideNames.forEach(n => { if (!allNames.includes(n)) allNames.push(n); });
+// Shuffle immediately so first matchups are not alphabetically biased
+(function shuffleInPlace(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+})(allNames);
+
+// ── ELO state ──────────────────────────────────────────────────────────────
+const INITIAL_ELO = 1200;
+const K = 32;
+const MIN_MATCHES_BEFORE_RESULTS = 100;
+
+const S = {
+  phase: 'ranking',   // 'ranking' | 'results' | 'r2' | 'final'
+  elo: {},
+  matchCount: 0,
+  matchHistory: new Set(), // "nameA|nameB" sorted
+  appearanceCount: {}, // how many times each name has featured in a matchup
+  currentMatch: null,
+  showFull: false,
+  // Round 2
+  top5: [],
+  r2firstIdx: 0,
+  r2middleNames: [],
+  r2middleIdx: 0,
+  r2votes: {},
+};
+
+// Init ELO and appearance counts
+allNames.forEach(n => { S.elo[n] = INITIAL_ELO; S.appearanceCount[n] = 0; });
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function pairKey(a, b) {
+  return [a, b].sort().join('|');
+}
+
+function getSortedNames() {
+  return [...allNames].sort((a, b) => S.elo[b] - S.elo[a]);
+}
+
+function getRankOf(name) {
+  return getSortedNames().indexOf(name) + 1;
+}
+
+// Pick a matchup.
+// For the first MIN_MATCHES_BEFORE_RESULTS matches: prioritise names with fewest appearances
+// so every name is guaranteed to feature before results are shown.
+// After that: pick by ELO proximity (similar scores matched together).
+function pickNextMatch() {
+  const underMinThreshold = S.matchCount < MIN_MATCHES_BEFORE_RESULTS;
+
+  if (underMinThreshold) {
+    // Sort names by appearance count ascending, shuffle within ties
+    const byAppearance = shuffle(allNames).sort((a, b) => (S.appearanceCount[a] || 0) - (S.appearanceCount[b] || 0));
+    for (const nameA of byAppearance) {
+      // Find opponent: least-seen name that hasn't been paired with nameA yet
+      const candidates = shuffle(allNames)
+        .filter(n => n !== nameA && !S.matchHistory.has(pairKey(nameA, n)))
+        .sort((x, y) => (S.appearanceCount[x] || 0) - (S.appearanceCount[y] || 0));
+      if (candidates.length > 0) {
+        // Pick from the least-seen 5 to add variety while still ensuring coverage
+        const pool = candidates.slice(0, Math.min(5, candidates.length));
+        const nameB = pool[Math.floor(Math.random() * pool.length)];
+        return [nameA, nameB];
+      }
+    }
+  }
+
+  // Post-100: ELO-proximity matching
+  const shuffled = shuffle(allNames);
+  for (const nameA of shuffled) {
+    const candidates = allNames
+      .filter(n => n !== nameA && !S.matchHistory.has(pairKey(nameA, n)))
+      .sort((x, y) => Math.abs(S.elo[x] - S.elo[nameA]) - Math.abs(S.elo[y] - S.elo[nameA]));
+    if (candidates.length > 0) {
+      const pool = candidates.slice(0, Math.min(5, candidates.length));
+      const nameB = pool[Math.floor(Math.random() * pool.length)];
+      return [nameA, nameB];
+    }
+  }
+  return null; // all pairs exhausted
+}
+
+function applyElo(winner, loser) {
+  const eW = S.elo[winner], eL = S.elo[loser];
+  const expW = 1 / (1 + Math.pow(10, (eL - eW) / 400));
+  const expL = 1 - expW;
+  S.elo[winner] = Math.round(eW + K * (1 - expW));
+  S.elo[loser] = Math.round(eL + K * (0 - expL));
+}
+
+function recordMatch(nameA, nameB) {
+  S.matchHistory.add(pairKey(nameA, nameB));
+  S.matchCount++;
+  S.appearanceCount[nameA] = (S.appearanceCount[nameA] || 0) + 1;
+  S.appearanceCount[nameB] = (S.appearanceCount[nameB] || 0) + 1;
+}
+
+function pickAndSetMatch() {
+  const match = pickNextMatch();
+  S.currentMatch = match;
+}
+
+function confirmEarlyResults() {
+  const remaining = MIN_MATCHES_BEFORE_RESULTS - S.matchCount;
+  const root = document.getElementById('app-root');
+  // Insert a small inline warning above the match card
+  const warning = document.createElement('div');
+  warning.style.cssText = 'background:#FFF8DC;border:2px solid #C8860A;padding:12px 16px;margin-bottom:12px;font-size:13px;font-weight:600;letter-spacing:0.04em;line-height:1.5;';
+  warning.innerHTML = `⚠ The rankings are still warming up — you've made ${S.matchCount} comparisons out of a recommended 100. Results will be more accurate with more data. <br><br>
+    <div style="display:flex;gap:10px;margin-top:8px;flex-wrap:wrap;">
+      <button class="tfl-btn tfl-btn-primary" onclick="goToResults()" style="font-size:12px;padding:8px 16px;">Show me anyway →</button>
+      <button class="tfl-btn tfl-btn-secondary" onclick="render()" style="font-size:12px;padding:8px 16px;">Keep going (${remaining} to go)</button>
+    </div>`;
+  // Clear and re-render with warning prepended
+  render();
+  document.getElementById('app-root').insertBefore(warning, document.getElementById('app-root').firstChild);
+}
+
+function vote(winnerName) {
+  if (!S.currentMatch) return;
+  const [a, b] = S.currentMatch;
+  const loser = a === winnerName ? b : a;
+  applyElo(winnerName, loser);
+  recordMatch(a, b);
+  pickAndSetMatch();
+  render();
+}
+
+function skipMatch() {
+  if (!S.currentMatch) return;
+  const [a, b] = S.currentMatch;
+  recordMatch(a, b); // count as seen so we don't repeat
+  pickAndSetMatch();
+  render();
+}
+
+function goToResults() {
+  S.phase = 'results';
+  S.showFull = false;
+  render();
+}
+
+function continueRanking() {
+  S.phase = 'ranking';
+  pickAndSetMatch();
+  render();
+}
+
+function goToR2() {
+  const sorted = getSortedNames();
+  S.top5 = sorted.slice(0, 5);
+  S.r2firstIdx = 0;
+  S.r2votes = {};
+  S.top5.forEach((_, i) => { S.r2votes[i] = {}; });
+  loadR2Pass();
+  S.phase = 'r2';
+  render();
+}
+
+function loadR2Pass() {
+  const fn = S.top5[S.r2firstIdx];
+  S.r2middleNames = shuffle(allNames.filter(n => n !== fn));
+  S.r2middleIdx = 0;
+}
+
+function voteR2(yes) {
+  const mid = S.r2middleNames[S.r2middleIdx];
+  S.r2votes[S.r2firstIdx][mid] = yes;
+  S.r2middleIdx++;
+  if (S.r2middleIdx >= S.r2middleNames.length) {
+    S.r2firstIdx++;
+    if (S.r2firstIdx >= S.top5.length) {
+      S.phase = 'final';
+      render(); return;
+    }
+    loadR2Pass();
+  }
+  render();
+}
+
+// ── Copy helpers ────────────────────────────────────────────────────────────
+function execCommandCopy(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0;';
+  document.body.appendChild(ta);
+  ta.focus(); ta.select();
+  let ok = false;
+  try { ok = document.execCommand('copy'); } catch(e) {}
+  document.body.removeChild(ta);
+  return ok;
+}
+
+function copyToClipboard(text, btnId, resetLabel) {
+  const btn = document.getElementById(btnId);
+  function onSuccess() {
+    if (btn) { btn.textContent = '✓ Copied to clipboard'; btn.classList.add('copied'); setTimeout(() => { btn.textContent = resetLabel; btn.classList.remove('copied'); }, 2200); }
+  }
+  function onFail() {
+    if (btn) { btn.textContent = '✗ Copy failed'; setTimeout(() => { btn.textContent = resetLabel; }, 2200); }
+  }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(onSuccess).catch(() => execCommandCopy(text) ? onSuccess() : onFail());
+  } else {
+    execCommandCopy(text) ? onSuccess() : onFail();
+  }
+}
+
+function exportRankings(btnId) {
+  const sorted = getSortedNames();
+  const rows = [['Rank', 'Name', 'ELO Score']];
+  sorted.forEach((n, i) => rows.push([i + 1, displayName(n), S.elo[n]]));
+  const tsv = rows.map(r => r.join('\t')).join('\n');
+  copyToClipboard(tsv, btnId, '↑ Export full ranking');
+}
+
+function exportCombos(btnId) {
+  const rows = [['First Name Rank', 'First Name', 'Middle Name']];
+  S.top5.forEach((fn, i) => {
+    const votes = S.r2votes[i] || {};
+    const yeses = Object.entries(votes).filter(([,v]) => v).map(([n]) => n);
+    const rank = getRankOf(fn);
+    yeses.forEach(mid => rows.push([rank, displayName(fn), displayName(mid)]));
+  });
+  if (rows.length === 1) {
+    const btn = document.getElementById(btnId);
+    if (btn) { btn.textContent = '✗ No thumbs-up combos'; setTimeout(() => { btn.textContent = '↑ Export name combinations'; }, 2000); }
+    return;
+  }
+  const tsv = rows.map(r => r.join('\t')).join('\n');
+  copyToClipboard(tsv, btnId, '↑ Export name combinations');
+}
+
+// ── Render ──────────────────────────────────────────────────────────────────
+function render() {
+  const root = document.getElementById('app-root');
+  if (S.phase === 'ranking') renderRanking(root);
+  else if (S.phase === 'results') renderResults(root);
+  else if (S.phase === 'r2') renderR2(root);
+  else if (S.phase === 'final') renderFinal(root);
+}
+
+function renderRanking(root) {
+  if (!S.currentMatch) pickAndSetMatch();
+  const match = S.currentMatch;
+  if (!match) {
+    root.innerHTML = `<div class="notice-strip">All possible pairs have been compared!</div>
+      <div class="action-row"><button class="tfl-btn tfl-btn-primary" onclick="goToResults()">View Final Rankings →</button></div>`;
+    return;
+  }
+  const [a, b] = match;
+  const pct = Math.min(100, Math.round((S.matchCount / MIN_MATCHES_BEFORE_RESULTS) * 100));
+  const canFinish = S.matchCount >= MIN_MATCHES_BEFORE_RESULTS;
+  const remaining = Math.max(0, MIN_MATCHES_BEFORE_RESULTS - S.matchCount);
+  const an = a.replace(/'/g, "\\'"), bn = b.replace(/'/g, "\\'");
+
+  root.innerHTML = `
+    <div class="tube-line-wrap fade-up">
+      <div class="tube-line-label">
+        <span class="tube-line-name">Comparisons Made</span>
+        <span class="tube-line-pct">${S.matchCount} completed</span>
+      </div>
+      <div class="tube-track"><div class="tube-fill" style="width:${pct}%"></div></div>
+      <div class="tube-stations">
+        <span class="tube-station-label">Start</span>
+        <span class="tube-station-label">50</span>
+        <span class="tube-station-label">100</span>
+      </div>
+    </div>
+
+    <div class="platform-sign">Platform ${S.matchCount + 1} · Which name do you prefer?</div>
+
+    <div class="match-card fade-up">
+      <div class="match-instruction">Select your preferred name</div>
+      <div class="match-names">
+        <button class="name-option left" onclick="vote('${an}')">
+          <span class="name-option-label">${displayName(a)}</span>
+        </button>
+        <div class="vs-col"><span class="vs-text">VS</span></div>
+        <button class="name-option right" onclick="vote('${bn}')">
+          <span class="name-option-label">${displayName(b)}</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="action-row">
+      <button class="tfl-btn tfl-btn-secondary" onclick="skipMatch()">Skip this pair</button>
+      ${canFinish
+        ? `<button class="tfl-btn tfl-btn-primary" onclick="goToResults()">View Results →</button>`
+        : `<button class="tfl-btn tfl-btn-secondary" onclick="confirmEarlyResults()" title="Results will be less accurate before 100 comparisons">Peek at rankings early</button>`
+      }
+    </div>
+  `;
+}
+
+function renderResults(root) {
+  const sorted = getSortedNames();
+  const top10 = sorted.slice(0, 10);
+  const rest = sorted.slice(10);
+
+  const renderItem = (name, idx) => {
+    const rank = idx + 1;
+    const cls = rank <= 3 ? 'top-3' : rank <= 10 ? 'top-10' : '';
+    return `<div class="rank-item ${cls}">
+      <div class="rank-num">${rank}</div>
+      <div><span class="rank-dot"></span><span class="rank-name">${displayName(name)}</span></div>
+      <div class="rank-elo">${S.elo[name]}</div>
+    </div>`;
+  };
+
+  const fullListHTML = S.showFull
+    ? `${top10.map((n,i) => renderItem(n,i)).join('')}
+       <div style="height:2px;background:var(--tfl-border);margin:4px 0;"></div>
+       ${rest.map((n,i) => renderItem(n, i + 10)).join('')}`
+    : top10.map((n,i) => renderItem(n,i)).join('');
+
+  root.innerHTML = `
+    <div class="results-header fade-up">
+      <div class="results-title">Current Rankings</div>
+      <div class="results-sub">${S.matchCount} comparisons · ${allNames.length} names ranked</div>
+    </div>
+
+    <div class="notice-strip">Top 10 names · ${S.matchCount} comparisons made</div>
+
+    <div class="ranking-list fade-up">
+      ${fullListHTML}
+    </div>
+
+    <div class="expand-btn-wrap">
+      <button class="expand-btn" onclick="toggleFull()">${S.showFull ? '▲ Show top 10 only' : '▼ Show all ' + allNames.length + ' names'}</button>
+    </div>
+
+    <div class="tfl-divider"></div>
+
+    <div class="results-actions fade-up">
+      <button class="tfl-btn tfl-btn-secondary" style="width:100%" onclick="continueRanking()">↺ Continue ranking to refine results</button>
+      <button class="tfl-btn tfl-btn-blue" style="width:100%" onclick="goToR2()">→ Continue to middle name selection</button>
+      <button class="export-btn" id="exp-rankings" onclick="exportRankings('exp-rankings')">↑ Export full ranking</button>
+    </div>
+  `;
+}
+
+function toggleFull() {
+  S.showFull = !S.showFull;
+  renderResults(document.getElementById('app-root'));
+}
+
+function renderR2(root) {
+  const fn = S.top5[S.r2firstIdx];
+  const mid = S.r2middleNames[S.r2middleIdx];
+  const total = S.r2middleNames.length;
+  const done = S.r2middleIdx;
+  const pct = Math.round((done / total) * 100);
+  const rank = getRankOf(fn);
+  const passNum = S.r2firstIdx + 1;
+
+  root.innerHTML = `
+    <div class="tube-line-wrap">
+      <div class="tube-line-label">
+        <span class="tube-line-name">Pass ${passNum} of ${S.top5.length} · ${displayName(fn)}</span>
+        <span class="tube-line-pct">${done}/${total}</span>
+      </div>
+      <div class="tube-track"><div class="tube-fill" style="width:${pct}%"></div></div>
+    </div>
+
+    <div class="r2-header fade-up">
+      <span class="r2-pass-label">First name · Ranked #${rank}</span>
+      <span class="r2-first-name">${displayName(fn)}</span>
+      <div class="r2-question">Does this work as a middle name?</div>
+    </div>
+
+    <div class="combo-card fade-up">
+      <div class="combo-full-name">
+        <span class="combo-first">${displayName(fn)}</span>
+        <span style="color:var(--tfl-light)"> </span>
+        <span class="combo-middle">${displayName(mid)}</span>
+      </div>
+      <div class="combo-surname">Morton</div>
+    </div>
+
+    <div class="thumb-row">
+      <button class="thumb-btn thumb-yes" onclick="voteR2(true)">✓ Yes</button>
+      <button class="thumb-btn thumb-no" onclick="voteR2(false)">✗ No</button>
+    </div>
+    <div class="r2-progress-text">${total - done} combinations remaining</div>
+  `;
+}
+
+function renderFinal(root) {
+  // R1 ranked list (top 10 + expand)
+  const sorted = getSortedNames();
+
+  const top10HTML = sorted.slice(0, 10).map((n, i) => {
+    const rank = i + 1;
+    const cls = rank <= 3 ? 'top-3' : 'top-10';
+    return `<div class="rank-item ${cls}">
+      <div class="rank-num">${rank}</div>
+      <div><span class="rank-dot"></span><span class="rank-name">${displayName(n)}</span></div>
+      <div class="rank-elo">${S.elo[n]}</div>
+    </div>`;
+  }).join('');
+
+  // R2 combos
+  let combosHTML = '';
+  S.top5.forEach((fn, i) => {
+    const votes = S.r2votes[i] || {};
+    const yeses = Object.entries(votes).filter(([,v]) => v).map(([n]) => n);
+    combosHTML += `<div class="r2-results-block">
+      <div class="r2-name-heading">${displayName(fn)} <span style="font-size:14px;font-weight:400;color:var(--tfl-light)">(ranked #${getRankOf(fn)})</span></div>
+      ${yeses.length > 0
+        ? `<div class="combo-pills">${yeses.map(m => `<span class="combo-pill">${displayName(fn)} <strong>${displayName(m)}</strong></span>`).join('')}</div>`
+        : `<div class="no-combos">No combinations selected</div>`
+      }
+    </div>`;
+  });
+
+  // Corgi SVG — appears once, on the final screen
+  const corgiSVG = `
+  <div class="corgi-wrap">
+    <svg width="120" height="90" viewBox="0 0 120 90" xmlns="http://www.w3.org/2000/svg">
+      <!-- Body -->
+      <ellipse cx="58" cy="58" rx="30" ry="20" fill="#C8860A"/>
+      <!-- Tummy -->
+      <ellipse cx="58" cy="62" rx="18" ry="12" fill="#F5D07A"/>
+      <!-- Head -->
+      <ellipse cx="85" cy="42" rx="18" ry="15" fill="#C8860A"/>
+      <!-- Snout -->
+      <ellipse cx="98" cy="47" rx="9" ry="6" fill="#F5D07A"/>
+      <!-- Nose -->
+      <ellipse cx="104" cy="45" rx="3" ry="2" fill="#2D1B0E"/>
+      <!-- Eye -->
+      <circle cx="93" cy="38" r="3" fill="#2D1B0E"/>
+      <circle cx="94" cy="37" r="1" fill="white"/>
+      <!-- Left ear -->
+      <ellipse cx="75" cy="28" rx="7" ry="11" fill="#C8860A" transform="rotate(-15 75 28)"/>
+      <ellipse cx="75" cy="29" rx="4" ry="7" fill="#8B4513" transform="rotate(-15 75 29)"/>
+      <!-- Right ear -->
+      <ellipse cx="91" cy="26" rx="7" ry="11" fill="#C8860A" transform="rotate(15 91 26)"/>
+      <ellipse cx="91" cy="27" rx="4" ry="7" fill="#8B4513" transform="rotate(15 91 27)"/>
+      <!-- Front legs -->
+      <rect x="44" y="72" width="8" height="14" rx="4" fill="#C8860A"/>
+      <rect x="56" y="72" width="8" height="14" rx="4" fill="#C8860A"/>
+      <!-- Back legs -->
+      <rect x="28" y="70" width="8" height="14" rx="4" fill="#C8860A"/>
+      <rect x="38" y="72" width="8" height="12" rx="4" fill="#C8860A"/>
+      <!-- Tail — curled up -->
+      <path d="M28 55 Q10 45 14 32 Q18 22 28 28" fill="none" stroke="#C8860A" stroke-width="6" stroke-linecap="round"/>
+      <path d="M28 55 Q10 45 14 32 Q18 22 28 28" fill="none" stroke="#F5D07A" stroke-width="2" stroke-linecap="round"/>
+      <!-- Collar -->
+      <rect x="72" y="52" width="20" height="5" rx="2" fill="#E1251B"/>
+      <circle cx="82" cy="57" r="2" fill="#FFD700"/>
+    </svg>
+    <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--tfl-light);margin-top:4px;">Good dog</div>
+  </div>`;
+
+  root.innerHTML = `
+    <div class="final-header fade-up">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:0.04em;color:var(--tfl-dark);">All Done!</div>
+      <div style="font-size:12px;letter-spacing:0.1em;text-transform:uppercase;color:var(--tfl-mid);margin-top:4px;">${S.matchCount} comparisons · Morton Line</div>
+    </div>
+
+    <div class="notice-strip">Section 1 · First Name Rankings</div>
+    <div class="ranking-list">${top10HTML}</div>
+    <div class="expand-btn-wrap">
+      <button class="expand-btn" onclick="toggleFinalFull()">▼ Show all ${allNames.length} names</button>
+    </div>
+    <div id="final-full-list"></div>
+
+    <div class="tfl-divider"></div>
+
+    <div class="notice-strip">Section 2 · Middle Name Combinations</div>
+    ${combosHTML}
+
+    ${corgiSVG}
+
+    <div class="tfl-divider"></div>
+
+    <div class="results-actions fade-up">
+      <button class="export-btn" id="exp-r-final" onclick="exportRankings('exp-r-final')">↑ Export full ranking</button>
+      <button class="export-btn" id="exp-c-final" onclick="exportCombos('exp-c-final')" style="margin-top:8px;">↑ Export name combinations</button>
+      <button class="tfl-btn tfl-btn-secondary" style="width:100%;margin-top:10px;" onclick="continueRanking()">↺ Continue ranking</button>
+    </div>
+  `;
+}
+
+let finalShowFull = false;
+function toggleFinalFull() {
+  finalShowFull = !finalShowFull;
+  const container = document.getElementById('final-full-list');
+  const btn = document.querySelector('.expand-btn');
+  const sorted = getSortedNames();
+  if (finalShowFull) {
+    const rest = sorted.slice(10);
+    container.innerHTML = `<div style="height:2px;background:var(--tfl-border);margin:4px 0;"></div>` +
+      rest.map((n, i) => {
+        const rank = i + 11;
+        return `<div class="rank-item">
+          <div class="rank-num">${rank}</div>
+          <div><span class="rank-dot"></span><span class="rank-name">${displayName(n)}</span></div>
+          <div class="rank-elo">${S.elo[n]}</div>
+        </div>`;
+      }).join('');
+    if (btn) btn.textContent = '▲ Show top 10 only';
+  } else {
+    container.innerHTML = '';
+    if (btn) btn.textContent = `▼ Show all ${allNames.length} names`;
+  }
+}
+
+// Kick off
+pickAndSetMatch();
+render();
+</script>
+</body>
+</html>
